@@ -1919,7 +1919,7 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
             {
                 SDL_SetWindowPosition(
                     sdl.window,
-                    -2000,
+                    -5000,
                     0
                 );
             }
@@ -2386,7 +2386,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
         if(sdl.displayNumber == 0)
             SDL_SetWindowPosition(
                 sdl.window,
-                -623,
+                -5000,
                 0
             );
         else {
