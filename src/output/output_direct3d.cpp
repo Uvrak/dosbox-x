@@ -313,9 +313,15 @@ struct GridBuilderFrameHeader
 {
     uint32_t width;
     uint32_t height;
+
+    uint32_t contentWidth;
+    uint32_t contentHeight;
+
     uint32_t pitch;
     uint32_t format;
     uint64_t frameCounter;
+
+    
 };
 
 static HANDLE gridBuilderMapping = nullptr;
@@ -533,6 +539,16 @@ void OUTPUT_DIRECT3D_EndUpdate(
                     header->height =
                         static_cast<uint32_t>(
                             d3d->dwTexHeight
+                            );
+
+                    header->contentWidth =
+                        static_cast<uint32_t>(
+                            sdl.draw.width
+                            );
+
+                    header->contentHeight =
+                        static_cast<uint32_t>(
+                            sdl.draw.height
                             );
 
                     header->pitch =
