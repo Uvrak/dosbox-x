@@ -327,8 +327,21 @@ static Bitu gridBuilderPitch = 0;
 
 static std::vector<uint8_t> gridBuilderFrame;
 
-bool OUTPUT_DIRECT3D_StartUpdate(uint8_t* &pixels, Bitu &pitch)
+bool OUTPUT_DIRECT3D_StartUpdate(
+    uint8_t*& pixels,
+    Bitu& pitch
+)
 {
+    static bool testPrinted = false;
+
+    if(!testPrinted)
+    {
+        LOG_MSG(
+            "GRIDBUILDER: StartUpdate reached"
+        );
+
+        testPrinted = true;
+    }
 #if C_XBRZ
     if (sdl_xbrz.enable && sdl_xbrz.scale_on) 
     {
@@ -388,8 +401,20 @@ bool OUTPUT_DIRECT3D_StartUpdate(uint8_t* &pixels, Bitu &pitch)
     return sdl.updating;
 }
 
-void OUTPUT_DIRECT3D_EndUpdate(const uint16_t *changedLines)
+void OUTPUT_DIRECT3D_EndUpdate(
+    const uint16_t* changedLines
+)
 {
+    static bool testPrinted = false;
+
+    if(!testPrinted)
+    {
+        LOG_MSG(
+            "GRIDBUILDER: EndUpdate reached"
+        );
+
+        testPrinted = true;
+    }
 #if C_XBRZ
     if (sdl_xbrz.enable && sdl_xbrz.scale_on) 
     {
@@ -466,6 +491,20 @@ void OUTPUT_DIRECT3D_EndUpdate(const uint16_t *changedLines)
                         ),
                     "GridBuilderDOSBoxFrame"
                 );
+
+            if(gridBuilderMapping == nullptr)
+            {
+                LOG_MSG(
+                    "GRIDBUILDER MAPPING FAILED: %lu",
+                    GetLastError()
+                );
+            }
+            else
+            {
+                LOG_MSG(
+                    "GRIDBUILDER MAPPING CREATED"
+                );
+            }
             if(gridBuilderMapping != nullptr &&
                 gridBuilderSharedMemory == nullptr)
             {
