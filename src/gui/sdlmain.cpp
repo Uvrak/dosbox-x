@@ -152,6 +152,7 @@ char* revert_escape_newlines(const char* aMessage);
 #include "../dos/cdrom.h"
 #include "../dos/drives.h"
 #include "../ints/int10.h"
+#include "gridbuilder_ipc.h"
 #if !defined(HX_DOS)
 #if !defined(OS2) && !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
 #include "whereami.c"
@@ -1854,17 +1855,54 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
             SDL_DestroyWindow(sdl.window);
         }
 
-        sdl.window = SDL_CreateWindow("",
-                                      SDL_WINDOWPOS_UNDEFINED_DISPLAY(sdl.displayNumber?sdl.displayNumber-1:0),
-                                      SDL_WINDOWPOS_UNDEFINED_DISPLAY(sdl.displayNumber?sdl.displayNumber-1:0),
-                                      width, height,
-                                      (GFX_IsFullscreen() ? (sdl.desktop.full.display_res ? SDL_WINDOW_FULLSCREEN_DESKTOP : SDL_WINDOW_FULLSCREEN) : 0)
-                                      | ((screenType == SCREEN_OPENGL) ? SDL_WINDOW_OPENGL : 0) | (maximize && !TTF_using()? SDL_WINDOW_MAXIMIZED : 0)
-                                      | SDL_WINDOW_SHOWN | (SDL2_resize_enable ? SDL_WINDOW_RESIZABLE : 0)
-                                      | (dpi_aware_enable ? SDL_WINDOW_ALLOW_HIGHDPI : 0));
+        if(sdl.embedded_mode &&
+            sdl.embedded_hwnd != nullptr)
+        {
+            sdl.window =
+                SDL_CreateWindowFrom(
+                    sdl.embedded_hwnd
+                );
+        }
+        else
+        {
+            sdl.window =
+                SDL_CreateWindow(
+                    "",
+                    /*SDL_WINDOWPOS_UNDEFINED_DISPLAY(
+                        sdl.displayNumber ?
+                        sdl.displayNumber - 1 :
+                        0
+                    ),
+                    SDL_WINDOWPOS_UNDEFINED_DISPLAY(
+                        sdl.displayNumber ?
+                        sdl.displayNumber - 1 :
+                        0
+                    ),*/ -5000,0,
+                    width,
+                    height,
+                    (GFX_IsFullscreen()
+                        ? (sdl.desktop.full.display_res
+                            ? SDL_WINDOW_FULLSCREEN_DESKTOP
+                            : SDL_WINDOW_FULLSCREEN)
+                        : 0)
+                    | ((screenType == SCREEN_OPENGL)
+                        ? SDL_WINDOW_OPENGL
+                        : 0)
+                    | (maximize && !TTF_using()
+                        ? SDL_WINDOW_MAXIMIZED
+                        : 0)
+                    | SDL_WINDOW_SHOWN
+                    | (SDL2_resize_enable
+                        ? SDL_WINDOW_RESIZABLE
+                        : 0)
+                    | (dpi_aware_enable
+                        ? SDL_WINDOW_ALLOW_HIGHDPI
+                        : 0)
+                );
+        }
         if (sdl.window) {
             GFX_SetTitle(-1, -1, -1, false); //refresh title.
-            if(saved_flags & SDL_WINDOW_MAXIMIZED) {
+            /*if(saved_flags & SDL_WINDOW_MAXIMIZED) {
                 SDL_MaximizeWindow(sdl.window);
             }
             else if(posx < 0 || posy < 0)
@@ -1872,6 +1910,18 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
             else if(saved_x != SDL_WINDOWPOS_UNDEFINED && saved_y != SDL_WINDOWPOS_UNDEFINED &&
                 !(saved_flags & SDL_WINDOW_MAXIMIZED)) {
                 SDL_SetWindowPosition(sdl.window, saved_x, saved_y); // restore position.
+            }
+            */
+            if(saved_flags & SDL_WINDOW_MAXIMIZED) {
+                SDL_MaximizeWindow(sdl.window);
+            }
+            else
+            {
+                SDL_SetWindowPosition(
+                    sdl.window,
+                    -2000,
+                    0
+                );
             }
         }
         sdl.surface = SDL_GetWindowSurface(sdl.window);
@@ -2331,8 +2381,14 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
 
 #if defined(C_SDL2)
     if (diff && posx < 0 && posy < 0 && !(posx == -2 && posy == -2)) {
-        if (sdl.displayNumber==0)
-            SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+        /*if(sdl.displayNumber == 0)
+            SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);*/
+        if(sdl.displayNumber == 0)
+            SDL_SetWindowPosition(
+                sdl.window,
+                -623,
+                0
+            );
         else {
             int bx = 0, by = 0;
             int displays = SDL_GetNumVideoDisplays();
@@ -3240,6 +3296,19 @@ bool GFX_StartUpdate(uint8_t* &pixels,Bitu &pitch)
     if (!sdl.active || sdl.updating)
         return false;
 
+    static bool gridBuilderScreenTypePrinted = false;
+
+    if(!gridBuilderScreenTypePrinted)
+    {
+        LOG_MSG(
+            "GRIDBUILDER SCREEN TYPE: %d",
+            static_cast<int>(
+                sdl.desktop.type
+                )
+        );
+
+        gridBuilderScreenTypePrinted = true;
+    }
     switch (sdl.desktop.type)
     {
         case SCREEN_SURFACE:
@@ -3708,9 +3777,66 @@ void Sendkeymapper(bool pressed) {
 bool has_GUI_StartUp = false;
 
 static void GUI_StartUp() {
-    DOSBoxMenu::item *item;
+#ifdef WIN32
+    const char* embedHwndText =
+        getenv("DOSBOXX_EMBED_HWND");
 
-    if (has_GUI_StartUp) return;
+    FILE* file =
+        fopen(
+            "C:\\Projects\\embed_test.txt",
+            "w"
+        );
+
+    if(file != nullptr)
+    {
+        fprintf(
+            file,
+            "DOSBOXX_EMBED_HWND=%s\n",
+            embedHwndText
+        );
+
+        fclose(file);
+    }
+
+    if(embedHwndText != nullptr)
+    {
+        unsigned long long hwndValue =
+            std::strtoull(
+                embedHwndText,
+                nullptr,
+                0
+            );
+
+        HWND embedHwnd =
+            reinterpret_cast<HWND>(
+                static_cast<uintptr_t>(
+                    hwndValue
+                    )
+                );
+
+        char debugText[128] = {};
+
+        snprintf(
+            debugText,
+            sizeof(debugText),
+            "DOSBOXX_EMBED_HWND=%p\n",
+            embedHwnd
+        );
+
+        OutputDebugStringA(
+            debugText
+        );
+
+        sdl.embedded_hwnd = embedHwnd;
+        sdl.embedded_mode = true;
+    }
+#endif
+
+    DOSBoxMenu::item* item;
+
+    if(has_GUI_StartUp)
+        return;
+
     has_GUI_StartUp = true;
 
     LOG(LOG_GUI,LOG_DEBUG)("Starting GUI");
@@ -6280,7 +6406,17 @@ void GFX_Events() {
 #endif
         case SDL_KEYDOWN:
         case SDL_KEYUP:
-            if (sdl.desktop.type == SCREEN_GAMELINK) break;
+            if(sdl.desktop.type == SCREEN_GAMELINK) break;
+
+            // Temporary GridBuilder keyboard test
+            if(event.type == SDL_KEYDOWN &&
+                event.key.keysym.sym == SDLK_F9)
+            {
+                KEYBOARD_AddKey(KBD_a, true);
+                KEYBOARD_AddKey(KBD_a, false);
+                break;
+            }
+
 #if defined (WIN32) || defined(MACOSX) || defined(C_SDL2)
             if (event.key.keysym.sym==SDLK_LALT) sdl.laltstate = event.key.type;
             if (event.key.keysym.sym==SDLK_RALT) sdl.raltstate = event.key.type;
@@ -8378,6 +8514,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #if (defined __i386__ || defined __x86_64__) && (!defined IS_OLDMACOS && (defined BSD || defined LINUX))
     dropPrivilegesTemp();
 #endif
+
     CommandLine com_line(argc,argv);
     Config myconf(&com_line);
     bool saved_opt_test;
@@ -8390,6 +8527,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 #endif
 
+    GRIDBUILDER_IPC_Init();
 
     /* -- parse command line arguments */
     if (!DOSBOX_parse_argv()) return 1;

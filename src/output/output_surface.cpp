@@ -642,6 +642,25 @@ bool OUTPUT_SURFACE_StartUpdate(uint8_t* &pixels, Bitu &pitch)
 
 void OUTPUT_SURFACE_EndUpdate(const uint16_t *changedLines)
 {
+    static bool gridBuilderSurfaceInfoPrinted = false;
+
+    if(!gridBuilderSurfaceInfoPrinted &&
+        sdl.surface != nullptr &&
+        sdl.surface->format != nullptr)
+    {
+        LOG_MSG(
+            "GRIDBUILDER SURFACE: %d x %d, pitch=%d, bpp=%d, format=%s",
+            sdl.surface->w,
+            sdl.surface->h,
+            sdl.surface->pitch,
+            sdl.surface->format->BytesPerPixel,
+            SDL_GetPixelFormatName(
+                sdl.surface->format->format
+            )
+        );
+
+        gridBuilderSurfaceInfoPrinted = true;
+    }
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     GFX_DrawSDLMenu(mainMenu, mainMenu.display_list);
 #endif

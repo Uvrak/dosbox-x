@@ -100,7 +100,12 @@ struct SDL_Block {
 #if defined(C_SDL2)
     bool update_window = false;
     bool update_display_contents = false;
+    bool embedded_mode = false;
+#ifdef WIN32
+    HWND embedded_hwnd = nullptr;
+#endif
     int window_desired_width = 0, window_desired_height = 0;
+
 #endif
     struct {
         uint32_t width = 0;

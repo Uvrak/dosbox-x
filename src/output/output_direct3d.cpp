@@ -309,6 +309,23 @@ Bitu OUTPUT_DIRECT3D_SetSize()
 
     return retFlags;
 }
+struct GridBuilderFrameHeader
+{
+    uint32_t width;
+    uint32_t height;
+    uint32_t pitch;
+    uint32_t format;
+    uint64_t frameCounter;
+};
+
+static HANDLE gridBuilderMapping = nullptr;
+static uint8_t* gridBuilderSharedMemory = nullptr;
+static uint64_t gridBuilderFrameCounter = 0;
+
+static uint8_t* gridBuilderPixels = nullptr;
+static Bitu gridBuilderPitch = 0;
+
+static std::vector<uint8_t> gridBuilderFrame;
 
 bool OUTPUT_DIRECT3D_StartUpdate(uint8_t* &pixels, Bitu &pitch)
 {
@@ -322,11 +339,52 @@ bool OUTPUT_DIRECT3D_StartUpdate(uint8_t* &pixels, Bitu &pitch)
     }
     else
     {
-        sdl.updating = d3d->LockTexture(pixels, pitch);
+        sdl.updating =
+            d3d->LockTexture(
+                pixels,
+                pitch
+            );
     }
 #else
-    sdl.updating = d3d->LockTexture(pixels, pitch);
+    sdl.updating =
+        d3d->LockTexture(
+            pixels,
+            pitch
+        );
 #endif
+    if(sdl.updating)
+    {
+        gridBuilderPixels = pixels;
+        gridBuilderPitch = pitch;
+    }
+    else
+    {
+        gridBuilderPixels = nullptr;
+        gridBuilderPitch = 0;
+    }
+
+    return sdl.updating;
+
+    static bool gridBuilderD3DInfoPrinted = false;
+
+    if(!gridBuilderD3DInfoPrinted &&
+        sdl.updating)
+    {
+        LOG_MSG(
+            "GRIDBUILDER D3D: %lu x %lu, pitch=%llu",
+            static_cast<unsigned long>(
+                d3d->dwTexWidth
+                ),
+            static_cast<unsigned long>(
+                d3d->dwTexHeight
+                ),
+            static_cast<unsigned long long>(
+                pitch
+                )
+        );
+
+        gridBuilderD3DInfoPrinted = true;
+    }
     return sdl.updating;
 }
 
@@ -374,6 +432,90 @@ void OUTPUT_DIRECT3D_EndUpdate(const uint16_t *changedLines)
 #endif
 
     if (!menu.hidecycles) frames++; //implemented
+    if(gridBuilderPixels != nullptr &&
+        gridBuilderPitch > 0)
+    {
+        const size_t frameSize =
+            static_cast<size_t>(gridBuilderPitch) *
+            static_cast<size_t>(d3d->dwTexHeight);
+
+        gridBuilderFrame.resize(frameSize);
+
+        std::memcpy(
+            gridBuilderFrame.data(),
+            gridBuilderPixels,
+            frameSize
+        );
+        const size_t headerSize =
+            sizeof(GridBuilderFrameHeader);
+
+        const size_t totalSize =
+            headerSize +
+            gridBuilderFrame.size();
+
+        if(gridBuilderMapping == nullptr)
+        {
+            gridBuilderMapping =
+                CreateFileMappingA(
+                    INVALID_HANDLE_VALUE,
+                    nullptr,
+                    PAGE_READWRITE,
+                    0,
+                    static_cast<DWORD>(
+                        totalSize
+                        ),
+                    "GridBuilderDOSBoxFrame"
+                );
+            if(gridBuilderMapping != nullptr &&
+                gridBuilderSharedMemory == nullptr)
+            {
+                gridBuilderSharedMemory =
+                    static_cast<uint8_t*>(
+                        MapViewOfFile(
+                            gridBuilderMapping,
+                            FILE_MAP_ALL_ACCESS,
+                            0,
+                            0,
+                            totalSize
+                        )
+                        );
+                if(gridBuilderSharedMemory != nullptr)
+                {
+                    auto* header =
+                        reinterpret_cast<GridBuilderFrameHeader*>(
+                            gridBuilderSharedMemory
+                            );
+
+                    header->width =
+                        static_cast<uint32_t>(
+                            d3d->dwTexWidth
+                            );
+
+                    header->height =
+                        static_cast<uint32_t>(
+                            d3d->dwTexHeight
+                            );
+
+                    header->pitch =
+                        static_cast<uint32_t>(
+                            gridBuilderPitch
+                            );
+
+                    header->format = 1;
+
+                    header->frameCounter =
+                        ++gridBuilderFrameCounter;
+
+                    std::memcpy(
+                        gridBuilderSharedMemory +
+                        sizeof(GridBuilderFrameHeader),
+                        gridBuilderFrame.data(),
+                        gridBuilderFrame.size()
+                    );
+                }
+            }
+        }
+    }
     if (GCC_UNLIKELY(!d3d->UnlockTexture(changedLines)))
         E_Exit("Failed to draw screen!");
 }

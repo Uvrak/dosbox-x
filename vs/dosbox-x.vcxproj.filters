@@ -1698,6 +1698,7 @@
     <ClCompile Include="..\src\misc\ethernet_ethnet.cpp">
       <Filter>Sources\misc</Filter>
     </ClCompile>
+    <ClCompile Include="gridbuilder_ipc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -2683,6 +2684,9 @@
     </ClInclude>
     <ClInclude Include="..\src\misc\ethernet_ethnet.h">
       <Filter>Sources\misc</Filter>
+    </ClInclude>
+    <ClInclude Include="gridbuilder_ipc.h">
+      <Filter>Sources</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
