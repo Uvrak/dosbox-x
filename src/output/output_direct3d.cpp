@@ -497,78 +497,66 @@ void OUTPUT_DIRECT3D_EndUpdate(
                         ),
                     "GridBuilderDOSBoxFrame"
                 );
+        }
 
-            if(gridBuilderMapping == nullptr)
-            {
-                LOG_MSG(
-                    "GRIDBUILDER MAPPING FAILED: %lu",
-                    GetLastError()
-                );
-            }
-            else
-            {
-                LOG_MSG(
-                    "GRIDBUILDER MAPPING CREATED"
-                );
-            }
-            if(gridBuilderMapping != nullptr &&
-                gridBuilderSharedMemory == nullptr)
-            {
-                gridBuilderSharedMemory =
-                    static_cast<uint8_t*>(
-                        MapViewOfFile(
-                            gridBuilderMapping,
-                            FILE_MAP_ALL_ACCESS,
-                            0,
-                            0,
-                            totalSize
-                        )
-                        );
-                if(gridBuilderSharedMemory != nullptr)
-                {
-                    auto* header =
-                        reinterpret_cast<GridBuilderFrameHeader*>(
-                            gridBuilderSharedMemory
-                            );
-
-                    header->width =
-                        static_cast<uint32_t>(
-                            d3d->dwTexWidth
-                            );
-
-                    header->height =
-                        static_cast<uint32_t>(
-                            d3d->dwTexHeight
-                            );
-
-                    header->contentWidth =
-                        static_cast<uint32_t>(
-                            sdl.draw.width
-                            );
-
-                    header->contentHeight =
-                        static_cast<uint32_t>(
-                            sdl.draw.height
-                            );
-
-                    header->pitch =
-                        static_cast<uint32_t>(
-                            gridBuilderPitch
-                            );
-
-                    header->format = 1;
-
-                    header->frameCounter =
-                        ++gridBuilderFrameCounter;
-
-                    std::memcpy(
-                        gridBuilderSharedMemory +
-                        sizeof(GridBuilderFrameHeader),
-                        gridBuilderFrame.data(),
-                        gridBuilderFrame.size()
+        if(gridBuilderMapping != nullptr &&
+            gridBuilderSharedMemory == nullptr)
+        {
+            gridBuilderSharedMemory =
+                static_cast<uint8_t*>(
+                    MapViewOfFile(
+                        gridBuilderMapping,
+                        FILE_MAP_ALL_ACCESS,
+                        0,
+                        0,
+                        totalSize
+                    )
                     );
-                }
-            }
+        }
+
+        if(gridBuilderSharedMemory != nullptr)
+        {
+            auto* header =
+                reinterpret_cast<GridBuilderFrameHeader*>(
+                    gridBuilderSharedMemory
+                    );
+
+            header->width =
+                static_cast<uint32_t>(
+                    d3d->dwTexWidth
+                    );
+
+            header->height =
+                static_cast<uint32_t>(
+                    d3d->dwTexHeight
+                    );
+
+            header->contentWidth =
+                static_cast<uint32_t>(
+                    sdl.draw.width
+                    );
+
+            header->contentHeight =
+                static_cast<uint32_t>(
+                    sdl.draw.height
+                    );
+
+            header->pitch =
+                static_cast<uint32_t>(
+                    gridBuilderPitch
+                    );
+
+            header->format = 1;
+
+            header->frameCounter =
+                ++gridBuilderFrameCounter;
+
+            std::memcpy(
+                gridBuilderSharedMemory +
+                sizeof(GridBuilderFrameHeader),
+                gridBuilderFrame.data(),
+                gridBuilderFrame.size()
+            );
         }
     }
     if (GCC_UNLIKELY(!d3d->UnlockTexture(changedLines)))
