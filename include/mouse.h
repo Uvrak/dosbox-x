@@ -51,4 +51,9 @@ void Mouse_AfterNewVideoMode(bool setmode);
 void UpdateMouseReportRate(void);
 void ChangeMouseReportRate(unsigned int new_rate);
 
+void Mouse_GridBuilderMove(
+    float x,
+    float y
+);
+
 #endif

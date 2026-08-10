@@ -115,6 +115,73 @@ void GRIDBUILDER_IPC_ProcessCommands()
             continue;
         }
 
+        const char* mouseMovePrefix =
+            "MOUSEMOVE:";
+
+        if(std::strncmp(
+            text,
+            mouseMovePrefix,
+            std::strlen(mouseMovePrefix)
+        ) == 0)
+        {
+            int x = 0;
+            int y = 0;
+            int width = 0;
+            int height = 0;
+
+            if(std::sscanf(
+                text + std::strlen(mouseMovePrefix),
+                "%d:%d:%d:%d",
+                &x,
+                &y,
+                &width,
+                &height
+            ) == 4)
+            {
+                if(width > 1 &&
+                    height > 1)
+                {
+                    const float normalizedX =
+                        static_cast<float>(x) /
+                        static_cast<float>(
+                            width - 1
+                            );
+
+                    const float normalizedY =
+                        static_cast<float>(y) /
+                        static_cast<float>(
+                            height - 1
+                            );
+
+                    Mouse_GridBuilderMove(
+                        normalizedX,
+                        normalizedY
+                    );
+                }
+            }
+           
+        }
+
+        if(std::strcmp(
+            text,
+            "MOUSEDOWN:0"
+        ) == 0)
+        {
+            Mouse_ButtonPressed(0);
+
+            continue;
+        }
+
+        if(std::strcmp(
+            text,
+            "MOUSEUP:0"
+        ) == 0)
+        {
+            Mouse_ButtonReleased(0);
+
+            continue;
+        }
+
         const char* keyDownPrefix =
             "KEYDOWN:";
 
@@ -422,6 +489,14 @@ void GRIDBUILDER_IPC_ProcessCommands()
                     isKeyDown
                 );
             }
+
+            if(std::strcmp(ipcKeyName, "ALTGR") == 0)
+            {
+                GRIDBUILDER_IPC_SetKey(
+                    KBD_rightalt,
+                    isKeyDown
+                );
+            }
         }
     }
 }
@@ -487,25 +562,31 @@ static void GRIDBUILDER_IPC_Thread()
             "GridBuilder IPC: client connected\n"
         );
 
-        char buffer[256]{};
-
-        DWORD bytesRead = 0;
-
-        BOOL result =
-            ReadFile(
-                pipe,
-                buffer,
-                sizeof(buffer) - 1,
-                &bytesRead,
-                nullptr
-            );
-
-        if(result && bytesRead > 0)
+        while(g_ipcRunning)
         {
+            char buffer[256]{};
+
+            DWORD bytesRead = 0;
+
+            BOOL result =
+                ReadFile(
+                    pipe,
+                    buffer,
+                    sizeof(buffer) - 1,
+                    &bytesRead,
+                    nullptr
+                );
+
+            if(!result || bytesRead == 0)
+            {
+                break;
+            }
+
             buffer[bytesRead] = '\0';
+
             GRIDBUILDER_IPC_QueueCommand(
                 buffer
-            ); 
+            );
         }
 
         DisconnectNamedPipe(

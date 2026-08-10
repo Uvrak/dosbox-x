@@ -1540,7 +1540,10 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\ints\int10_vesa.cpp" />
     <ClCompile Include="..\src\ints\int10_video_state.cpp" />
     <ClCompile Include="..\src\ints\int10_vptable.cpp" />
-    <ClCompile Include="..\src\ints\mouse.cpp" />
+    <ClCompile Include="..\src\ints\mouse.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release SDL2|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\src\ints\xms.cpp" />
     <ClCompile Include="..\src\libs\gui_tk\gui_tk.cpp" />
     <ClCompile Include="..\src\libs\passthroughio\passthroughio.cpp" />

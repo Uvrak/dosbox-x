@@ -2905,3 +2905,21 @@ private:
 	}
 } dummy;
 }
+
+void Mouse_GridBuilderMove(
+    float x,
+    float y
+)
+{
+    mouse.x =
+        x * mouse.max_x;
+
+    mouse.y =
+        y * mouse.max_y;
+
+    Mouse_AddEvent(
+        MOUSE_HAS_MOVED
+    );
+}
+
+
