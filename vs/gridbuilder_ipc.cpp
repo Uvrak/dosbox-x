@@ -174,6 +174,16 @@ void GRIDBUILDER_IPC_ProcessCommands()
 
         if(std::strcmp(
             text,
+            "MOUSEDOWN:1"
+        ) == 0)
+        {
+            Mouse_ButtonPressed(1);
+
+            continue;
+        }
+
+        if(std::strcmp(
+            text,
             "MOUSEUP:0"
         ) == 0)
         {
@@ -182,6 +192,33 @@ void GRIDBUILDER_IPC_ProcessCommands()
             continue;
         }
 
+        if(std::strcmp(
+            text,
+            "MOUSEUP:1"
+        ) == 0)
+        {
+            Mouse_ButtonReleased(1);
+
+            continue;
+        }
+
+        if(std::strcmp(
+            text,
+            "MOUSEWHEEL:UP"
+        ) == 0)
+        {
+            Mouse_WheelMoved(1);
+            continue;
+        }
+
+        if(std::strcmp(
+            text,
+            "MOUSEWHEEL:DOWN"
+        ) == 0)
+        {
+            Mouse_WheelMoved(-1);
+            continue;
+        }
         const char* keyDownPrefix =
             "KEYDOWN:";
 
