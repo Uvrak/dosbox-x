@@ -14,6 +14,12 @@
 
 #include "keyboard.h"
 #include "mouse.h"
+#include "dosbox.h"
+
+extern Bitu DOS_SwitchKeyboardLayout(
+    const char* new_layout,
+    int32_t& tried_cp
+);
 
 static std::thread g_ipcThread;
 static std::atomic<bool> g_ipcRunning{ false };
@@ -111,6 +117,36 @@ void GRIDBUILDER_IPC_ProcessCommands()
             g_gridBuilderPressedKeys.clear();
 
             KEYBOARD_ClrBuffer();
+
+            continue;
+        }
+
+        if(std::strcmp(
+            text,
+            "KEYBOARD_LAYOUT:GR"
+        ) == 0)
+        {
+            int32_t triedCodepage = 0;
+
+            DOS_SwitchKeyboardLayout(
+                "gr",
+                triedCodepage
+            );
+
+            continue;
+        }
+
+        if(std::strcmp(
+            text,
+            "KEYBOARD_LAYOUT:US"
+        ) == 0)
+        {
+            int32_t triedCodepage = 0;
+
+            DOS_SwitchKeyboardLayout(
+                "us",
+                triedCodepage
+            );
 
             continue;
         }
