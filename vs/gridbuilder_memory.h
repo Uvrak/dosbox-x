@@ -32,6 +32,24 @@
 // 116250 (0x1C61A) changed together with axis A during testing,
 // but is not required for the raw position.
 
+// Relative direction mapping:
+//
+// 48  = position axis A positive
+// 12  = position axis B negative
+// 3   = position axis A negative
+// 192 = position axis B positive
+//
+// Proposed GridBuilder mapping:
+// X = axis A
+// Y = inverted axis B
+//
+// This gives:
+// 48  = East
+// 12  = South
+// 3   = West
+// 192 = North
+//
+// Final verification against a known MM1 map is still required.
 class GridBuilderMemory
 {
 public:
