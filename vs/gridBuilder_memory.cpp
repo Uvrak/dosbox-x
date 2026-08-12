@@ -59,6 +59,15 @@ GridBuilderMemory::snapshot() const
     return m_snapshot;
 }
 
+void GridBuilderMemory::resetCandidates()
+{
+    m_candidateAddresses.clear();
+    m_candidatesInitialized = false;
+
+    m_snapshot.clear();
+    m_previousSnapshot.clear();
+}
+
 std::vector<size_t>
 GridBuilderMemory::changedAddresses() const
 {
@@ -87,7 +96,8 @@ GridBuilderMemory::changedAddresses() const
 }
 
 void GridBuilderMemory::refineChangedAddresses(
-    uint8_t expectedDifference
+    const std::vector<uint8_t>&
+    expectedDifferences
 )
 {
     if(m_previousSnapshot.size() !=
@@ -114,8 +124,18 @@ void GridBuilderMemory::refineChangedAddresses(
                 previousValue
             );
 
-        if(difference ==
-            expectedDifference)
+        const bool differenceAccepted =
+            expectedDifferences.empty()
+            ? difference != 0
+            : std::find(
+                expectedDifferences.begin(),
+                expectedDifferences.end(),
+                static_cast<uint8_t>(
+                    difference
+                    )
+            ) != expectedDifferences.end();
+
+        if(differenceAccepted)
         {
             changed.push_back(
                 address
@@ -129,12 +149,14 @@ void GridBuilderMemory::refineChangedAddresses(
         return;
     }
 
-    if(m_candidateAddresses.empty())
+    if(!m_candidatesInitialized)
     {
         m_candidateAddresses =
             std::move(
                 changed
             );
+
+        m_candidatesInitialized = true;
 
         return;
     }
@@ -155,7 +177,7 @@ void GridBuilderMemory::refineChangedAddresses(
         std::move(
             refined
         );
-}
+    }
 
 const std::vector<size_t>&
 GridBuilderMemory::candidateAddresses() const

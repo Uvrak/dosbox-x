@@ -111,6 +111,20 @@ void GRIDBUILDER_IPC_ProcessCommands()
 
         if(std::strcmp(
             text,
+            "MEMORY_RESET"
+        ) == 0)
+        {
+            g_gridBuilderMemory.resetCandidates();
+
+            printf(
+                "GridBuilder memory candidates reset\n"
+            );
+
+            continue;
+        }
+
+        if(std::strcmp(
+            text,
             "MEMORY_SNAPSHOT"
         ) == 0)
         {
@@ -132,7 +146,7 @@ void GRIDBUILDER_IPC_ProcessCommands()
                 );
 
                 g_gridBuilderMemory.refineChangedAddresses(
-                    16
+                    { 1, 16 }
                 );
 
                 const std::vector<size_t>& candidateAddresses =
@@ -143,7 +157,7 @@ void GRIDBUILDER_IPC_ProcessCommands()
                     candidateAddresses.size()
                 );
 
-                const size_t addressesToPrint =
+                        const size_t addressesToPrint =
                     std::min<size_t>(
                         candidateAddresses.size(),
                         100
@@ -176,6 +190,57 @@ void GRIDBUILDER_IPC_ProcessCommands()
             continue;
         }
 
+        if(std::strcmp(
+            text,
+            "MEMORY_REFINE_UNCHANGED"
+        ) == 0)
+        {
+            if(g_gridBuilderMemory.captureSnapshot())
+            {
+                g_gridBuilderMemory.refineChangedAddresses(
+                    {}
+                );
+
+                const std::vector<size_t>& candidateAddresses =
+                    g_gridBuilderMemory.candidateAddresses();
+
+                printf(
+                    "GridBuilder unchanged candidate addresses: %zu\n",
+                    candidateAddresses.size()
+                );
+
+                const size_t addressesToPrint =
+                    std::min<size_t>(
+                        candidateAddresses.size(),
+                        100
+                    );
+
+                for(size_t index = 0;
+                    index < addressesToPrint;
+                    ++index)
+                {
+                    const size_t address =
+                        candidateAddresses[index];
+
+                    printf(
+                        "candidate 0x%05zX = %u\n",
+                        address,
+                        static_cast<unsigned int>(
+                            g_gridBuilderMemory
+                            .snapshot()[address]
+                            )
+                    );
+                }
+            }
+            else
+            {
+                printf(
+                    "GridBuilder unchanged snapshot failed\n"
+                );
+            }
+
+            continue;
+        }
         if(std::strcmp(
             text,
             "RELEASE_ALL"
