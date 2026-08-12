@@ -11,10 +11,16 @@
 #include <queue>
 #include <mutex>
 
+#include <vector>
+#include <algorithm>
+
 
 #include "keyboard.h"
 #include "mouse.h"
 #include "dosbox.h"
+#include "mem.h"
+
+#include "gridbuilder_memory.h"
 
 extern Bitu DOS_SwitchKeyboardLayout(
     const char* new_layout,
@@ -32,6 +38,9 @@ g_gridBuilderCommandQueue;
 
 static std::mutex
 g_gridBuilderCommandMutex;
+
+static GridBuilderMemory
+g_gridBuilderMemory;
 
 static void GRIDBUILDER_IPC_QueueCommand(
     const char* command
@@ -99,6 +108,73 @@ void GRIDBUILDER_IPC_ProcessCommands()
 
         const char* text =
             command.c_str();
+
+        if(std::strcmp(
+            text,
+            "MEMORY_SNAPSHOT"
+        ) == 0)
+        {
+            if(g_gridBuilderMemory.captureSnapshot())
+            {
+                printf(
+                    "GridBuilder memory snapshot captured: %zu bytes\n",
+                    g_gridBuilderMemory
+                    .snapshot()
+                    .size()
+                );
+
+                const std::vector<size_t> changedAddresses =
+                    g_gridBuilderMemory.changedAddresses();
+
+                printf(
+                    "GridBuilder changed addresses: %zu\n",
+                    changedAddresses.size()
+                );
+
+                g_gridBuilderMemory.refineChangedAddresses(
+                    16
+                );
+
+                const std::vector<size_t>& candidateAddresses =
+                    g_gridBuilderMemory.candidateAddresses();
+
+                printf(
+                    "GridBuilder candidate addresses: %zu\n",
+                    candidateAddresses.size()
+                );
+
+                const size_t addressesToPrint =
+                    std::min<size_t>(
+                        candidateAddresses.size(),
+                        100
+                    );
+
+                for(size_t index = 0;
+                    index < addressesToPrint;
+                    ++index)
+                {
+                    const size_t address =
+                        candidateAddresses[index];
+
+                    printf(
+                        "candidate 0x%05zX = %u\n",
+                        address,
+                        static_cast<unsigned int>(
+                            g_gridBuilderMemory
+                            .snapshot()[address]
+                            )
+                    );
+                }
+            }
+            else
+            {
+                printf(
+                    "GridBuilder memory snapshot failed\n"
+                );
+            }
+
+            continue;
+        }
 
         if(std::strcmp(
             text,

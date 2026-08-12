@@ -1615,6 +1615,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="gridbuilder_ipc.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release SDL2|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="gridBuilder_memory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc" />
@@ -1949,6 +1950,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClInclude Include="..\src\libs\xBRZ\xbrz_tools.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="gridbuilder_ipc.h" />
+    <ClInclude Include="gridbuilder_memory.h" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="String.natvis" />

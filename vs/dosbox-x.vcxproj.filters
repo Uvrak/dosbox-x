@@ -1699,6 +1699,7 @@
       <Filter>Sources\misc</Filter>
     </ClCompile>
     <ClCompile Include="gridbuilder_ipc.cpp" />
+    <ClCompile Include="gridBuilder_memory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -2688,6 +2689,7 @@
     <ClInclude Include="gridbuilder_ipc.h">
       <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="gridbuilder_memory.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc">
