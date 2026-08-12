@@ -580,7 +580,7 @@ static void GRIDBUILDER_IPC_Thread()
         HANDLE pipe =
             CreateNamedPipeA(
                 "\\\\.\\pipe\\GridBuilderDOSBox",
-                PIPE_ACCESS_INBOUND,
+                PIPE_ACCESS_DUPLEX,
                 PIPE_TYPE_MESSAGE |
                 PIPE_READMODE_MESSAGE |
                 PIPE_WAIT,
@@ -656,6 +656,29 @@ static void GRIDBUILDER_IPC_Thread()
             }
 
             buffer[bytesRead] = '\0';
+
+            if(std::strcmp(
+                buffer,
+                "PING"
+            ) == 0)
+            {
+                const char* response =
+                    "PONG";
+
+                DWORD bytesWritten = 0;
+
+                WriteFile(
+                    pipe,
+                    response,
+                    static_cast<DWORD>(
+                        std::strlen(response)
+                        ),
+                    &bytesWritten,
+                    nullptr
+                );
+
+                continue;
+            }
 
             GRIDBUILDER_IPC_QueueCommand(
                 buffer
