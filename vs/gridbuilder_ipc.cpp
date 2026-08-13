@@ -10,7 +10,7 @@
 #include <set>
 #include <queue>
 #include <mutex>
-
+#include <string>
 #include <vector>
 #include <algorithm>
 
@@ -23,10 +23,18 @@
 #include "gridbuilder_memory.h"
 #include "mightandmagic1.h"
 
+extern std::string RunningProgram;
+
 extern Bitu DOS_SwitchKeyboardLayout(
     const char* new_layout,
     int32_t& tried_cp
 );
+
+static std::string
+g_gridBuilderRunningProgram;
+
+static std::mutex
+g_gridBuilderRunningProgramMutex;
 
 static std::thread g_ipcThread;
 static std::atomic<bool> g_ipcRunning{ false };
@@ -98,6 +106,15 @@ static void GRIDBUILDER_IPC_SetKey(
 
 void GRIDBUILDER_IPC_ProcessCommands()
 {
+    {
+        std::lock_guard<std::mutex> lock(
+            g_gridBuilderRunningProgramMutex
+        );
+
+        g_gridBuilderRunningProgram =
+            RunningProgram;
+    }
+
     const MightAndMagic1State state =
         MightAndMagic1::readState();
 
@@ -831,6 +848,43 @@ static void GRIDBUILDER_IPC_Thread()
             }
 
             buffer[bytesRead] = '\0';
+
+            if(std::strcmp(
+                buffer,
+                "RUNNING_PROGRAM"
+            ) == 0)
+            {
+                std::string runningProgram;
+
+                {
+                    std::lock_guard<std::mutex> lock(
+                        g_gridBuilderRunningProgramMutex
+                    );
+
+                    runningProgram =
+                        g_gridBuilderRunningProgram;
+                }
+
+                std::string response =
+                    "RUNNING_PROGRAM:";
+
+                response +=
+                    runningProgram;
+
+                DWORD bytesWritten = 0;
+
+                WriteFile(
+                    pipe,
+                    response.data(),
+                    static_cast<DWORD>(
+                        response.size()
+                        ),
+                    &bytesWritten,
+                    nullptr
+                );
+
+                continue;
+            }
 
             if(std::strcmp(
                 buffer,
