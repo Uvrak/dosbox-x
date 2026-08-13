@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <cstddef>
+#include <cstdint>
 
 enum class MightAndMagic1Direction
 {
@@ -16,7 +18,8 @@ struct MightAndMagic1State
     int x = 0;
     int y = 0;
 
-    int areaId = 0;
+    int areaValueA = 0;
+    int areaValueB = 0;
 
     MightAndMagic1Direction direction =
         MightAndMagic1Direction::Unknown;
@@ -42,9 +45,11 @@ private:
     // Unconfirmed candidate.
     // This address is not stable during live polling
     // and must be replaced after further scanning.
-    static constexpr size_t
-        AreaIdAddress = 116265;
+    static constexpr std::size_t AreaValueAAddress =
+        0x1E529;
 
+    static constexpr std::size_t AreaValueBAddress =
+        0x1F1E3;
     static MightAndMagic1Direction
         decodeDirection(
             uint8_t value

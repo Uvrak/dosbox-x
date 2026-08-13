@@ -58,7 +58,10 @@ static std::atomic<int>
 g_mightAndMagic1Y{ 0 };
 
 static std::atomic<int>
-g_mightAndMagic1AreaId{ 0 };
+g_mightAndMagic1AreaValueA{ 0 };
+
+static std::atomic<int>
+g_mightAndMagic1AreaValueB{ 0 };
 
 static std::atomic<int>
 g_mightAndMagic1Direction{
@@ -127,8 +130,11 @@ void GRIDBUILDER_IPC_ProcessCommands()
     g_mightAndMagic1Y =
         state.y;
 
-    g_mightAndMagic1AreaId =
-        state.areaId;
+    g_mightAndMagic1AreaValueA =
+        state.areaValueA;
+
+    g_mightAndMagic1AreaValueB =
+        state.areaValueB;
 
     g_mightAndMagic1Direction =
         static_cast<int>(
@@ -966,10 +972,11 @@ static void GRIDBUILDER_IPC_Thread()
                 std::snprintf(
                     response,
                     sizeof(response),
-                    "MM1_STATE:%d:%d:%d:%s:%d",
+                    "MM1_STATE:%d:%d:%d:%d:%s:%d",
                     g_mightAndMagic1X.load(),
                     g_mightAndMagic1Y.load(),
-                    g_mightAndMagic1AreaId.load(),
+                    g_mightAndMagic1AreaValueA.load(),
+                    g_mightAndMagic1AreaValueB.load(),
                     direction,
                     g_mightAndMagic1StateValid.load()
                     ? 1
