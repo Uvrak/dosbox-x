@@ -21,6 +21,7 @@
 #include "mem.h"
 
 #include "gridbuilder_memory.h"
+#include "mightandmagic1.h"
 
 extern Bitu DOS_SwitchKeyboardLayout(
     const char* new_layout,
@@ -41,6 +42,22 @@ g_gridBuilderCommandMutex;
 
 static GridBuilderMemory
 g_gridBuilderMemory;
+
+static std::atomic<int>
+g_mightAndMagic1X{ 0 };
+
+static std::atomic<int>
+g_mightAndMagic1Y{ 0 };
+
+static std::atomic<int>
+g_mightAndMagic1Direction{
+    static_cast<int>(
+        MightAndMagic1Direction::Unknown
+    )
+};
+
+static std::atomic<bool>
+g_mightAndMagic1StateValid{ false };
 
 static void GRIDBUILDER_IPC_QueueCommand(
     const char* command
@@ -81,6 +98,23 @@ static void GRIDBUILDER_IPC_SetKey(
 
 void GRIDBUILDER_IPC_ProcessCommands()
 {
+    const MightAndMagic1State state =
+        MightAndMagic1::readState();
+
+    g_mightAndMagic1X =
+        state.x;
+
+    g_mightAndMagic1Y =
+        state.y;
+
+    g_mightAndMagic1Direction =
+        static_cast<int>(
+            state.direction
+            );
+
+    g_mightAndMagic1StateValid =
+        state.valid;
+
     std::queue<std::string> commands;
 
     {
@@ -797,6 +831,72 @@ static void GRIDBUILDER_IPC_Thread()
             }
 
             buffer[bytesRead] = '\0';
+
+            if(std::strcmp(
+                buffer,
+                "MM1_STATE"
+            ) == 0)
+            {
+                const int directionValue =
+                    g_mightAndMagic1Direction.load();
+
+                const char* direction =
+                    "UNKNOWN";
+
+                switch(
+                    static_cast<
+                    MightAndMagic1Direction
+                    >(directionValue)
+                    )
+                {
+                case MightAndMagic1Direction::North:
+                    direction = "NORTH";
+                    break;
+
+                case MightAndMagic1Direction::East:
+                    direction = "EAST";
+                    break;
+
+                case MightAndMagic1Direction::South:
+                    direction = "SOUTH";
+                    break;
+
+                case MightAndMagic1Direction::West:
+                    direction = "WEST";
+                    break;
+
+                case MightAndMagic1Direction::Unknown:
+                    break;
+                }
+
+                char response[256]{};
+
+                std::snprintf(
+                    response,
+                    sizeof(response),
+                    "MM1_STATE:%d:%d:%s:%d",
+                    g_mightAndMagic1X.load(),
+                    g_mightAndMagic1Y.load(),
+                    direction,
+                    g_mightAndMagic1StateValid.load()
+                    ? 1
+                    : 0
+                );
+
+                DWORD bytesWritten = 0;
+
+                WriteFile(
+                    pipe,
+                    response,
+                    static_cast<DWORD>(
+                        std::strlen(response)
+                        ),
+                    &bytesWritten,
+                    nullptr
+                );
+
+                continue;
+            }
 
             if(std::strcmp(
                 buffer,

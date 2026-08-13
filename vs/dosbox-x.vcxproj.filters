@@ -1700,6 +1700,7 @@
     </ClCompile>
     <ClCompile Include="gridbuilder_ipc.cpp" />
     <ClCompile Include="gridBuilder_memory.cpp" />
+    <ClCompile Include="mightandmagic1.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -2690,6 +2691,7 @@
       <Filter>Sources</Filter>
     </ClInclude>
     <ClInclude Include="gridbuilder_memory.h" />
+    <ClInclude Include="mightandmagic1.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc">

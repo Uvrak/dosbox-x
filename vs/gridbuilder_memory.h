@@ -50,6 +50,9 @@
 // 192 = North
 //
 // Final verification against a known MM1 map is still required.
+
+// Next:
+// Find the MM1 map/area identifier and floor/level value.
 class GridBuilderMemory
 {
 public:
