@@ -76,6 +76,8 @@ public:
     const std::vector<size_t>&
         candidateAddresses() const;
 
+    void refineUnchangedAddresses();
+
 private:
     std::vector<uint8_t>
         m_snapshot;

@@ -179,6 +179,61 @@ void GridBuilderMemory::refineChangedAddresses(
         );
     }
 
+void GridBuilderMemory::
+refineUnchangedAddresses()
+{
+    if(m_previousSnapshot.size() !=
+        m_snapshot.size())
+    {
+        return;
+    }
+
+    std::vector<size_t> unchanged;
+
+    for(size_t address = 0;
+        address < m_snapshot.size();
+        ++address)
+    {
+        if(m_previousSnapshot[address] ==
+            m_snapshot[address])
+        {
+            unchanged.push_back(
+                address
+            );
+        }
+    }
+
+    if(!m_candidatesInitialized)
+    {
+        m_candidateAddresses =
+            std::move(
+                unchanged
+            );
+
+        m_candidatesInitialized =
+            true;
+
+        return;
+    }
+
+    std::vector<size_t> refined;
+
+    std::set_intersection(
+        m_candidateAddresses.begin(),
+        m_candidateAddresses.end(),
+        unchanged.begin(),
+        unchanged.end(),
+        std::back_inserter(
+            refined
+        )
+    );
+
+    m_candidateAddresses =
+        std::move(
+            refined
+        );
+}
+
 const std::vector<size_t>&
 GridBuilderMemory::candidateAddresses() const
 {

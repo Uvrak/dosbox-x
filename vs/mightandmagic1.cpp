@@ -26,6 +26,12 @@ MightAndMagic1::readState()
                 )
         );
 
+    const uint8_t areaId =
+        phys_readb(
+            static_cast<PhysPt>(
+                AreaIdAddress
+                )
+        );
     MightAndMagic1State state;
 
     state.x =
@@ -36,6 +42,11 @@ MightAndMagic1::readState()
     state.y =
         -static_cast<int>(
             axisB
+            );
+
+    state.areaId =
+        static_cast<int>(
+            areaId
             );
 
     state.direction =

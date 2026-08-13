@@ -58,6 +58,9 @@ static std::atomic<int>
 g_mightAndMagic1Y{ 0 };
 
 static std::atomic<int>
+g_mightAndMagic1AreaId{ 0 };
+
+static std::atomic<int>
 g_mightAndMagic1Direction{
     static_cast<int>(
         MightAndMagic1Direction::Unknown
@@ -123,6 +126,9 @@ void GRIDBUILDER_IPC_ProcessCommands()
 
     g_mightAndMagic1Y =
         state.y;
+
+    g_mightAndMagic1AreaId =
+        state.areaId;
 
     g_mightAndMagic1Direction =
         static_cast<int>(
@@ -197,16 +203,29 @@ void GRIDBUILDER_IPC_ProcessCommands()
                 );
 
                 g_gridBuilderMemory.refineChangedAddresses(
-                    { 1, 16 }
+                    {}
                 );
 
                 const std::vector<size_t>& candidateAddresses =
                     g_gridBuilderMemory.candidateAddresses();
 
-                printf(
+                char candidateCountText[128]{};
+
+                std::snprintf(
+                    candidateCountText,
+                    sizeof(candidateCountText),
                     "GridBuilder candidate addresses: %zu\n",
                     candidateAddresses.size()
                 );
+
+                OutputDebugStringA(
+                    candidateCountText
+                );
+                constexpr size_t Mm1DumpStart =
+                    0x1C610;
+
+                constexpr size_t Mm1DumpEnd =
+                    0x1C630;
 
                         const size_t addressesToPrint =
                     std::min<size_t>(
@@ -221,13 +240,21 @@ void GRIDBUILDER_IPC_ProcessCommands()
                     const size_t address =
                         candidateAddresses[index];
 
-                    printf(
+                    char debugText[128]{};
+
+                    std::snprintf(
+                        debugText,
+                        sizeof(debugText),
                         "candidate 0x%05zX = %u\n",
                         address,
                         static_cast<unsigned int>(
                             g_gridBuilderMemory
                             .snapshot()[address]
                             )
+                    );
+
+                    OutputDebugStringA(
+                        debugText
                     );
                 }
             }
@@ -248,9 +275,8 @@ void GRIDBUILDER_IPC_ProcessCommands()
         {
             if(g_gridBuilderMemory.captureSnapshot())
             {
-                g_gridBuilderMemory.refineChangedAddresses(
-                    {}
-                );
+                g_gridBuilderMemory.
+                    refineUnchangedAddresses();
 
                 const std::vector<size_t>& candidateAddresses =
                     g_gridBuilderMemory.candidateAddresses();
@@ -762,6 +788,18 @@ void GRIDBUILDER_IPC_ProcessCommands()
                     isKeyDown
                 );
             }
+            if(std::strcmp(
+                ipcKeyName,
+                "CAPSLOCK"
+            ) == 0)
+            {
+                GRIDBUILDER_IPC_SetKey(
+                    KBD_capslock,
+                    isKeyDown
+                );
+
+                continue;
+            }
         }
     }
 }
@@ -928,9 +966,10 @@ static void GRIDBUILDER_IPC_Thread()
                 std::snprintf(
                     response,
                     sizeof(response),
-                    "MM1_STATE:%d:%d:%s:%d",
+                    "MM1_STATE:%d:%d:%d:%s:%d",
                     g_mightAndMagic1X.load(),
                     g_mightAndMagic1Y.load(),
+                    g_mightAndMagic1AreaId.load(),
                     direction,
                     g_mightAndMagic1StateValid.load()
                     ? 1

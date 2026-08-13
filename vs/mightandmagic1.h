@@ -16,6 +16,8 @@ struct MightAndMagic1State
     int x = 0;
     int y = 0;
 
+    int areaId = 0;
+
     MightAndMagic1Direction direction =
         MightAndMagic1Direction::Unknown;
 
@@ -36,6 +38,12 @@ private:
 
     static constexpr size_t
         DirectionAddress = 116253;
+
+    // Unconfirmed candidate.
+    // This address is not stable during live polling
+    // and must be replaced after further scanning.
+    static constexpr size_t
+        AreaIdAddress = 116265;
 
     static MightAndMagic1Direction
         decodeDirection(
