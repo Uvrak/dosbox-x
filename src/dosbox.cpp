@@ -81,6 +81,7 @@
 #include "clockdomain.h"
 
 #include "gridbuilder_ipc.h"
+#include "dosbox_memory_scanner_ipc.h"
 
 #if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
 /* FIX_ME: A workaround to avoid build error. Change version to 101300 if error occurs for Sierra (10.12) */
@@ -466,10 +467,13 @@ static Bitu Normal_Loop(void) {
         SDL_ticks_last = now;
     }
 
-    try {
+    try
+    {
         while(1)
         {
             GRIDBUILDER_IPC_ProcessCommands();
+
+            DOSBOX_MEMORY_SCANNER_IPC_ProcessCommands();
 
             if(PIC_RunQueue())
             {

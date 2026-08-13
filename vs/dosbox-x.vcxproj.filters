@@ -133,6 +133,9 @@
     <Filter Include="Sources\libs\tinyfiledialogs">
       <UniqueIdentifier>{d5990f4f-fb75-4276-9b30-a54d290d8822}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\memoryScanner">
+      <UniqueIdentifier>{2387c052-0d14-46c3-a312-3555ebe4edb2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp">
@@ -1701,6 +1704,12 @@
     <ClCompile Include="gridbuilder_ipc.cpp" />
     <ClCompile Include="gridBuilder_memory.cpp" />
     <ClCompile Include="mightandmagic1.cpp" />
+    <ClCompile Include="dosbox_memory_scanner_ipc.cpp">
+      <Filter>Sources\memoryScanner</Filter>
+    </ClCompile>
+    <ClCompile Include="dosbox_memory_snapshot_writer.cpp">
+      <Filter>Sources\memoryScanner</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -2692,6 +2701,15 @@
     </ClInclude>
     <ClInclude Include="gridbuilder_memory.h" />
     <ClInclude Include="mightandmagic1.h" />
+    <ClInclude Include="dosbox_memory_scanner_ipc.h">
+      <Filter>Sources\memoryScanner</Filter>
+    </ClInclude>
+    <ClInclude Include="dosbox_memory_snapshot.h">
+      <Filter>Sources\memoryScanner</Filter>
+    </ClInclude>
+    <ClInclude Include="dosbox_memory_snapshot_writer.h">
+      <Filter>Sources\memoryScanner</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc">

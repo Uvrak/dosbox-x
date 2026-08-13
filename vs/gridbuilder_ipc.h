@@ -5,4 +5,5 @@ void GRIDBUILDER_IPC_Init();
 void GRIDBUILDER_IPC_Shutdown();
 
 void GRIDBUILDER_IPC_ProcessCommands();
+
 #endif

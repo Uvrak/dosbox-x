@@ -152,7 +152,11 @@ char* revert_escape_newlines(const char* aMessage);
 #include "../dos/cdrom.h"
 #include "../dos/drives.h"
 #include "../ints/int10.h"
+
+#include <cstdlib>
+
 #include "gridbuilder_ipc.h"
+#include "dosbox_memory_scanner_ipc.h"
 #if !defined(HX_DOS)
 #if !defined(OS2) && !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
 #include "whereami.c"
@@ -8528,7 +8532,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
 
     GRIDBUILDER_IPC_Init();
+    DOSBOX_MEMORY_SCANNER_IPC_Init();
 
+    std::atexit(
+        []()
+        {
+            DOSBOX_MEMORY_SCANNER_IPC_Shutdown();
+            GRIDBUILDER_IPC_Shutdown();
+        }
+    );
     /* -- parse command line arguments */
     if (!DOSBOX_parse_argv()) return 1;
 

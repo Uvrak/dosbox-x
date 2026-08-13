@@ -1612,6 +1612,8 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\libs\fluidsynth\fluid_ringbuffer.c" />
     <ClCompile Include="..\src\libs\fluidsynth\fluid_settings.c" />
     <ClCompile Include="..\src\libs\fluidsynth\fluid_sys.c" />
+    <ClCompile Include="dosbox_memory_scanner_ipc.cpp" />
+    <ClCompile Include="dosbox_memory_snapshot_writer.cpp" />
     <ClCompile Include="gridbuilder_ipc.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release SDL2|x64'">false</ExcludedFromBuild>
     </ClCompile>
@@ -1952,6 +1954,9 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClInclude Include="..\src\libs\xBRZ\xbrz_config.h" />
     <ClInclude Include="..\src\libs\xBRZ\xbrz_tools.h" />
     <ClInclude Include="config.h" />
+    <ClInclude Include="dosbox_memory_scanner_ipc.h" />
+    <ClInclude Include="dosbox_memory_snapshot.h" />
+    <ClInclude Include="dosbox_memory_snapshot_writer.h" />
     <ClInclude Include="gridbuilder_ipc.h" />
     <ClInclude Include="gridbuilder_memory.h" />
     <ClInclude Include="mightandmagic1.h" />
