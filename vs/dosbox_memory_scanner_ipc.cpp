@@ -11,6 +11,8 @@
 #include <thread>
 #include <cstring>
 
+#include "mem.h"
+
 #include "dosbox_memory_snapshot_writer.h"
 
 namespace
@@ -109,6 +111,39 @@ namespace
                 ) == 0)
                 {
                     response = "PONG";
+                }
+                else if(std::strncmp(
+                    buffer,
+                    "WRITE:",
+                    6
+                ) == 0)
+                {
+                    size_t address = 0;
+                    unsigned int value = 0;
+
+                    if(std::sscanf(
+                        buffer + 6,
+                        "%zu:%u",
+                        &address,
+                        &value
+                    ) == 2 &&
+                        value <= 255)
+                    {
+                        phys_writeb(
+                            static_cast<PhysPt>(
+                                address
+                                ),
+                            static_cast<uint8_t>(
+                                value
+                                )
+                        );
+
+                        response = "OK";
+                    }
+                    else
+                    {
+                        response = "ERROR";
+                    }
                 }
                 else if(std::strcmp(
                     buffer,
