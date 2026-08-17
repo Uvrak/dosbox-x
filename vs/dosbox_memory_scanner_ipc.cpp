@@ -10,10 +10,14 @@
 #include <string>
 #include <thread>
 #include <cstring>
+#include <cstdlib>
+#include <algorithm>
+#include <sstream>
 
 #include "mem.h"
 
 #include "dosbox_memory_snapshot_writer.h"
+#include "memory_read_tracker.h"
 
 namespace
 {
@@ -55,8 +59,8 @@ namespace
                     PIPE_READMODE_MESSAGE |
                     PIPE_WAIT,
                     1,
-                    256,
-                    256,
+                    8192,
+                    8192,
                     0,
                     nullptr
                 );
@@ -145,6 +149,124 @@ namespace
                         response = "ERROR";
                     }
                 }
+                else if(std::strcmp(
+                    buffer,
+                    "READTRACK:START"
+                ) == 0)
+                {
+                    MemoryReadTracker::start();
+
+                    response = "OK";
+                }
+                else if(std::strcmp(
+                    buffer,
+                    "READTRACK:STOP"
+                ) == 0)
+                {
+                    MemoryReadTracker::stop();
+
+                    response = "OK";
+                }
+
+                else if(std::strcmp(
+                    buffer,
+                    "READTRACK:COUNT"
+                ) == 0)
+                {
+                    const auto addresses =
+                        MemoryReadTracker::addresses();
+
+                    response =
+                        std::to_string(
+                            addresses.size()
+                        );
+                }
+
+                else if(std::strncmp(
+                    buffer,
+                    "READTRACK:ADDRESS:",
+                    18
+                ) == 0)
+                {
+                    const auto addresses =
+                        MemoryReadTracker::addresses();
+
+                    const size_t index =
+                        static_cast<size_t>(
+                            std::strtoull(
+                                buffer + 18,
+                                nullptr,
+                                10
+                            )
+                            );
+
+                    if(index < addresses.size())
+                    {
+                        response =
+                            std::to_string(
+                                addresses[index]
+                            );
+                    }
+                    else
+                    {
+                        response =
+                            "ERROR:INDEX_OUT_OF_RANGE";
+                    }
+                }
+
+                else if(std::strncmp(
+                    buffer,
+                    "READTRACK:ADDRESSES:",
+                    20
+                    ) == 0)
+                    {
+                        size_t start = 0;
+                        size_t count = 0;
+
+                        const char* parameters =
+                            buffer +
+                            std::strlen(
+                                "READTRACK:ADDRESSES:"
+                            );
+
+                        if(std::sscanf(
+                            parameters,
+                            "%zu:%zu",
+                            &start,
+                            &count
+                        ) != 2)
+                        {
+                            response = "ERROR";
+                        }
+                        else
+                        {
+                            const auto addresses =
+                                MemoryReadTracker::addresses();
+
+                            std::ostringstream stream;
+
+                            const size_t end =
+                                (std::min)(
+                                    start + count,
+                                    addresses.size()
+                                    );
+
+                            for(size_t index = start;
+                                index < end;
+                                ++index)
+                            {
+                                if(index != start)
+                                {
+                                    stream << ',';
+                                }
+
+                                stream << addresses[index];
+                            }
+
+                            response = stream.str();
+                        }
+                }
+
                 else if(std::strcmp(
                     buffer,
                     "PUBLISH"
@@ -302,7 +424,7 @@ void DOSBOX_MEMORY_SCANNER_IPC_Shutdown()
     if(pipe !=
         INVALID_HANDLE_VALUE)
     {
-        CloseHandle(
+        ::CloseHandle(
             pipe
         );
     }

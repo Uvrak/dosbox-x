@@ -436,12 +436,35 @@ static INLINE PhysPt64 PAGING_GetPhysicalAddress64(const LinearPt linAddr) {
 	return ((PhysPt64)(paging.tlb.phys_page[linAddr>>12]&PHYSPAGE_ADDR)<<(PhysPt64)12)|(linAddr&0xfff);
 }
 
+namespace MemoryReadTracker
+{
+    void record(LinearPt address);
+}
+
 /* Special inlined memory reading/writing */
 
-static INLINE uint8_t mem_readb_inline(const LinearPt address) {
-	const HostPt tlb_addr=get_tlb_read(address);
-	if (tlb_addr) return host_readb(tlb_addr+address);
-	else return (uint8_t)(get_tlb_readhandler(address))->readb(address);
+static INLINE uint8_t mem_readb_inline(
+    const LinearPt address
+)
+{
+    MemoryReadTracker::record(
+        address
+    );
+
+    const HostPt tlb_addr =
+        get_tlb_read(address);
+
+    if(tlb_addr)
+    {
+        return host_readb(
+            tlb_addr + address
+        );
+    }
+
+    return static_cast<uint8_t>(
+        get_tlb_readhandler(address)->
+        readb(address)
+        );
 }
 
 static INLINE uint16_t mem_readw_inline(const LinearPt address) {

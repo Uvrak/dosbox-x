@@ -55,6 +55,8 @@
 #include "../gamelink/gamelink.h"
 #endif // C_GAMELINK
 
+#include "memory_read_tracker.h"
+
 /* memory from file, memory mapping */
 #if C_HAVE_MMAP
 # define DO_MEMORY_FILE
@@ -1382,8 +1384,12 @@ bool mem_unalignedwrited_checked(LinearPt address,uint32_t val) {
     return false;
 }
 
-uint8_t mem_readb(const LinearPt address) {
-    return mem_readb_inline(address);
+uint8_t mem_readb(const LinearPt address)
+{
+    const uint8_t value =
+        mem_readb_inline(address);
+
+    return value;
 }
 
 uint16_t mem_readw(const LinearPt address) {

@@ -1710,6 +1710,9 @@
     <ClCompile Include="dosbox_memory_snapshot_writer.cpp">
       <Filter>Sources\memoryScanner</Filter>
     </ClCompile>
+    <ClCompile Include="memory_read_tracker.cpp">
+      <Filter>Sources\memoryScanner</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -2708,6 +2711,9 @@
       <Filter>Sources\memoryScanner</Filter>
     </ClInclude>
     <ClInclude Include="dosbox_memory_snapshot_writer.h">
+      <Filter>Sources\memoryScanner</Filter>
+    </ClInclude>
+    <ClInclude Include="memory_read_tracker.h">
       <Filter>Sources\memoryScanner</Filter>
     </ClInclude>
   </ItemGroup>
