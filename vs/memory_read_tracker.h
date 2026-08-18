@@ -9,6 +9,7 @@ namespace MemoryReadTracker
 
     void start();
     void stop();
+    void clear();
 
     bool active();
 

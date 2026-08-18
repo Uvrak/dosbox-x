@@ -170,6 +170,16 @@ namespace
 
                 else if(std::strcmp(
                     buffer,
+                    "READTRACK:CLEAR"
+                ) == 0)
+                {
+                    MemoryReadTracker::clear();
+
+                    response = "OK";
+                }
+
+                else if(std::strcmp(
+                    buffer,
                     "READTRACK:COUNT"
                 ) == 0)
                 {

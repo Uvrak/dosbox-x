@@ -3,22 +3,31 @@
 #include <unordered_set>
 #include <vector>
 #include <algorithm>
+#include <atomic>
+#include <mutex>
 
 namespace
 {
-    bool trackingActive = false;
+    std::atomic<bool> trackingActive{ false };
 
     std::unordered_set<LinearPt>
         readAddresses;
+
+    std::mutex
+        readAddressesMutex;
 }
 void MemoryReadTracker::record(
     LinearPt address
 )
 {
-    if(!trackingActive)
+    if(!trackingActive.load())
     {
         return;
     }
+
+    std::lock_guard<std::mutex> lock(
+        readAddressesMutex
+    );
 
     readAddresses.insert(
         address
@@ -27,13 +36,29 @@ void MemoryReadTracker::record(
 
 void MemoryReadTracker::start()
 {
-    readAddresses.clear();
+    {
+        std::lock_guard<std::mutex> lock(
+            readAddressesMutex
+        );
+
+        readAddresses.clear();
+    }
+
     trackingActive = true;
 }
 
 void MemoryReadTracker::stop()
 {
     trackingActive = false;
+}
+
+void MemoryReadTracker::clear()
+{
+    std::lock_guard<std::mutex> lock(
+        readAddressesMutex
+    );
+
+    readAddresses.clear();
 }
 
 bool MemoryReadTracker::active()
@@ -44,6 +69,10 @@ bool MemoryReadTracker::active()
 std::vector<LinearPt>
 MemoryReadTracker::addresses()
 {
+    std::lock_guard<std::mutex> lock(
+        readAddressesMutex
+    );
+
     std::vector<LinearPt> result(
         readAddresses.begin(),
         readAddresses.end()
