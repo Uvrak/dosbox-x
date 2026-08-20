@@ -1150,7 +1150,9 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\cpu\flags.cpp" />
     <ClCompile Include="..\src\cpu\mmx.cpp" />
     <ClCompile Include="..\src\cpu\modrm.cpp" />
-    <ClCompile Include="..\src\cpu\paging.cpp" />
+    <ClCompile Include="..\src\cpu\paging.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\src\debug\debug.cpp" />
     <ClCompile Include="..\src\debug\debug_disasm.cpp" />
     <ClCompile Include="..\src\debug\debug_gui.cpp" />

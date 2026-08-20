@@ -34,6 +34,27 @@ void MemoryReadTracker::record(
     );
 }
 
+void MemoryReadTracker::record(
+    LinearPt address,
+    LinearPt instructionAddress
+)
+{
+    if(!trackingActive.load())
+    {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(
+        readAddressesMutex
+    );
+
+    readAddresses.insert(
+        address
+    );
+
+    (void)instructionAddress;
+}
+
 void MemoryReadTracker::start()
 {
     {

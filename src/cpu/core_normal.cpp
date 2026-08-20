@@ -45,7 +45,7 @@ extern bool ignore_opcode_63;
 #include "debug.h"
 #endif
 
-#define LoadMb(off) mem_readb_inline(off)
+#define LoadMb(off) tracked_readb(off)
 #define LoadMw(off) mem_readw_inline(off)
 #define LoadMd(off) mem_readd_inline(off)
 #define LoadMq(off) (((uint64_t)mem_readd_inline(off+4)<<(uint64_t)32) | (uint64_t)mem_readd_inline(off))
@@ -110,6 +110,20 @@ static struct {
 	GetEAHandler * ea_table;
 } core;
 
+static INLINE uint8_t
+tracked_readb(
+    const LinearPt address
+)
+{
+    MemoryReadTracker::record(
+        address,
+        core.cseip
+    );
+
+    return mem_readb_inline(
+        address
+    );
+}
 /* FIXME: Someone at Microsoft tell how subtracting PhysPt - PhysPt = __int64, or PhysPt + PhysPt = __int64 */
 #define GETIP		((PhysPt)(core.cseip-SegBase(cs)))
 #define SAVEIP		reg_eip=GETIP;

@@ -7,6 +7,8 @@ namespace MemoryReadTracker
 {
     void record(LinearPt address);
 
+    void record(LinearPt address, LinearPt instructionAddress);
+
     void start();
     void stop();
     void clear();

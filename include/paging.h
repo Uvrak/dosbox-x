@@ -439,6 +439,11 @@ static INLINE PhysPt64 PAGING_GetPhysicalAddress64(const LinearPt linAddr) {
 namespace MemoryReadTracker
 {
     void record(LinearPt address);
+
+    void record(
+        LinearPt address,
+        LinearPt instructionAddress
+    );
 }
 
 /* Special inlined memory reading/writing */
