@@ -279,6 +279,76 @@ namespace
 
                 else if(std::strcmp(
                     buffer,
+                    "READTRACK:INSTRUCTIONCOUNT"
+                    ) == 0)
+                    {
+                        const auto instructions =
+                            MemoryReadTracker::instructions();
+
+                        response =
+                            std::to_string(
+                                instructions.size()
+                            );
+                            }
+
+                else if(std::strncmp(
+                    buffer,
+                    "READTRACK:INSTRUCTIONS:",
+                    23
+                    ) == 0)
+                    {
+                        size_t start = 0;
+                        size_t count = 0;
+
+                        const char* parameters =
+                            buffer +
+                            std::strlen(
+                                "READTRACK:INSTRUCTIONS:"
+                            );
+
+                        if(std::sscanf(
+                            parameters,
+                            "%zu:%zu",
+                            &start,
+                            &count
+                        ) != 2)
+                        {
+                            response = "ERROR";
+                        }
+                        else
+                        {
+                            const auto instructions =
+                                MemoryReadTracker::instructions();
+
+                            std::ostringstream stream;
+
+                            const size_t end =
+                                (std::min)(
+                                    start + count,
+                                    instructions.size()
+                                    );
+
+                            for(size_t index = start;
+                                index < end;
+                                ++index)
+                            {
+                                if(index != start)
+                                {
+                                    stream << ',';
+                                }
+
+                                stream
+                                    << instructions[index].first
+                                    << ':'
+                                    << instructions[index].second;
+                            }
+
+                            response = stream.str();
+                        }
+                }
+
+                else if(std::strcmp(
+                    buffer,
                     "PUBLISH"
                 ) == 0)
                 {

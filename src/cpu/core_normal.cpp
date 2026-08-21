@@ -101,13 +101,14 @@ typedef PhysPt (*GetEAHandler)(void);
 static const uint32_t AddrMaskTable[2]={0x0000ffffu,0xffffffffu};
 
 static struct {
-	Bitu opcode_index;
-	PhysPt cseip;
-	PhysPt base_ds,base_ss;
-	SegNames base_val_ds;
-	bool rep_zero;
-	Bitu prefixes;
-	GetEAHandler * ea_table;
+    Bitu opcode_index;
+    PhysPt cseip;
+    PhysPt instruction_start;
+    PhysPt base_ds, base_ss;
+    SegNames base_val_ds;
+    bool rep_zero;
+    Bitu prefixes;
+    GetEAHandler* ea_table;
 } core;
 
 static INLINE uint8_t
@@ -117,7 +118,7 @@ tracked_readb(
 {
     MemoryReadTracker::record(
         address,
-        core.cseip
+        core.instruction_start
     );
 
     return mem_readb_inline(
@@ -175,9 +176,13 @@ Bits CPU_Core_Normal_Run(void) {
 	if (CPU_Cycles <= 0)
 		return CBRET_NONE;
 
-	while (CPU_Cycles-->0) {
-		LOADIP;
-		last_prefix=MP_NONE;
+    while(CPU_Cycles-- > 0) {
+        LOADIP;
+
+        core.instruction_start =
+            core.cseip;
+
+        last_prefix = MP_NONE;
 		core.opcode_index=cpu.code.big*(Bitu)0x200u;
 		core.prefixes=cpu.code.big;
 		last_ea86_offset=0;

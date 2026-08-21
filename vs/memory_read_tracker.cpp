@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <atomic>
 #include <mutex>
+#include <utility>
 
 namespace
 {
@@ -13,9 +14,13 @@ namespace
     std::unordered_set<LinearPt>
         readAddresses;
 
+    std::vector<std::pair<LinearPt, LinearPt>>
+        readInstructions;
+
     std::mutex
         readAddressesMutex;
 }
+
 void MemoryReadTracker::record(
     LinearPt address
 )
@@ -52,7 +57,10 @@ void MemoryReadTracker::record(
         address
     );
 
-    (void)instructionAddress;
+    readInstructions.emplace_back(
+        address,
+        instructionAddress
+    );
 }
 
 void MemoryReadTracker::start()
@@ -63,6 +71,7 @@ void MemoryReadTracker::start()
         );
 
         readAddresses.clear();
+        readInstructions.clear();
     }
 
     trackingActive = true;
@@ -80,6 +89,7 @@ void MemoryReadTracker::clear()
     );
 
     readAddresses.clear();
+    readInstructions.clear();
 }
 
 bool MemoryReadTracker::active()
@@ -105,4 +115,14 @@ MemoryReadTracker::addresses()
     );
 
     return result;
+}
+
+std::vector<std::pair<LinearPt, LinearPt>>
+MemoryReadTracker::instructions()
+{
+    std::lock_guard<std::mutex> lock(
+        readAddressesMutex
+    );
+
+    return readInstructions;
 }
