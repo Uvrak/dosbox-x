@@ -6,6 +6,7 @@
 #include <atomic>
 #include <mutex>
 #include <utility>
+#include <functional>
 
 namespace
 {
@@ -14,7 +15,31 @@ namespace
     std::unordered_set<LinearPt>
         readAddresses;
 
-    std::vector<std::pair<LinearPt, LinearPt>>
+    struct ReadInstructionHash
+    {
+        size_t operator()(
+            const std::pair<LinearPt, LinearPt>& value
+            ) const noexcept
+        {
+            const size_t h1 =
+                std::hash<LinearPt>{}(
+                    value.first
+                    );
+
+            const size_t h2 =
+                std::hash<LinearPt>{}(
+                    value.second
+                    );
+
+            return h1 ^
+                (h2 << 1);
+        }
+    };
+
+    std::unordered_set<
+        std::pair<LinearPt, LinearPt>,
+        ReadInstructionHash
+    >
         readInstructions;
 
     std::mutex
@@ -26,6 +51,15 @@ void MemoryReadTracker::record(
 )
 {
     if(!trackingActive.load())
+    {
+        return;
+    }
+
+    constexpr LinearPt rangeStart = 0x2BF00;
+    constexpr LinearPt rangeEnd = 0x2C100;
+
+    if(address < rangeStart ||
+        address > rangeEnd)
     {
         return;
     }
@@ -49,6 +83,15 @@ void MemoryReadTracker::record(
         return;
     }
 
+    constexpr LinearPt rangeStart = 0x2BF00;
+    constexpr LinearPt rangeEnd = 0x2C100;
+
+    if(address < rangeStart ||
+        address > rangeEnd)
+    {
+        return;
+    }
+
     std::lock_guard<std::mutex> lock(
         readAddressesMutex
     );
@@ -57,7 +100,7 @@ void MemoryReadTracker::record(
         address
     );
 
-    readInstructions.emplace_back(
+    readInstructions.emplace(
         address,
         instructionAddress
     );
@@ -124,5 +167,10 @@ MemoryReadTracker::instructions()
         readAddressesMutex
     );
 
-    return readInstructions;
+    return std::vector<
+        std::pair<LinearPt, LinearPt>
+    >(
+        readInstructions.begin(),
+        readInstructions.end()
+    );
 }
