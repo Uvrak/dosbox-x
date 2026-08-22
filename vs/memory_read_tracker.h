@@ -16,6 +16,12 @@ namespace MemoryReadTracker
         LinearPt instructionAddress
     );
 
+    void setTransitionTarget(
+        LinearPt address
+    );
+
+    LinearPt transitionTarget();
+
     void start();
     void stop();
     void clear();
@@ -27,4 +33,11 @@ namespace MemoryReadTracker
 
     std::vector<std::pair<LinearPt, LinearPt>>
         instructions();
+
+    void recordInstruction(
+        LinearPt instructionAddress
+    );
+
+    std::vector<std::pair<LinearPt, LinearPt>>
+        instructionTransitions();
 }

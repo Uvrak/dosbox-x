@@ -169,6 +169,8 @@ static INLINE uint32_t Fetchd() {
 #include "core_normal/support.h"
 #include "core_normal/string.h"
 
+#include "memory_read_tracker.h"
+
 
 #define EALookupTable (core.ea_table)
 
@@ -181,6 +183,10 @@ Bits CPU_Core_Normal_Run(void) {
 
         core.instruction_start =
             core.cseip;
+
+        MemoryReadTracker::recordInstruction(
+            core.instruction_start
+        );
 
         last_prefix = MP_NONE;
 		core.opcode_index=cpu.code.big*(Bitu)0x200u;

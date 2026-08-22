@@ -178,6 +178,30 @@ namespace
                     response = "OK";
                 }
 
+                else if(std::strncmp(
+                    buffer,
+                    "READTRACK:TRANSITIONTARGET:",
+                    27
+                ) == 0)
+                {
+                    const size_t address =
+                        static_cast<size_t>(
+                            std::strtoull(
+                                buffer + 27,
+                                nullptr,
+                                10
+                            )
+                            );
+
+                    MemoryReadTracker::setTransitionTarget(
+                        static_cast<LinearPt>(
+                            address
+                            )
+                    );
+
+                    response = "OK";
+                }
+
                 else if(std::strcmp(
                     buffer,
                     "READTRACK:COUNT"
@@ -289,7 +313,77 @@ namespace
                             std::to_string(
                                 instructions.size()
                             );
+                    }
+
+                else if(std::strcmp(
+                    buffer,
+                    "READTRACK:TRANSITIONCOUNT"
+                    ) == 0)
+                    {
+                        const auto transitions =
+                            MemoryReadTracker::instructionTransitions();
+
+                        response =
+                            std::to_string(
+                                transitions.size()
+                            );
+                    }
+
+                else if(std::strncmp(
+                    buffer,
+                    "READTRACK:TRANSITIONS:",
+                    22
+                    ) == 0)
+                    {
+                        size_t start = 0;
+                        size_t count = 0;
+
+                        const char* parameters =
+                            buffer +
+                            std::strlen(
+                                "READTRACK:TRANSITIONS:"
+                            );
+
+                        if(std::sscanf(
+                            parameters,
+                            "%zu:%zu",
+                            &start,
+                            &count
+                        ) != 2)
+                        {
+                            response = "ERROR";
+                        }
+                        else
+                        {
+                            const auto transitions =
+                                MemoryReadTracker::instructionTransitions();
+
+                            std::ostringstream stream;
+
+                            const size_t end =
+                                (std::min)(
+                                    start + count,
+                                    transitions.size()
+                                    );
+
+                            for(size_t index = start;
+                                index < end;
+                                ++index)
+                            {
+                                if(index != start)
+                                {
+                                    stream << ',';
+                                }
+
+                                stream
+                                    << transitions[index].first
+                                    << ':'
+                                    << transitions[index].second;
                             }
+
+                            response = stream.str();
+                        }
+                }
 
                 else if(std::strncmp(
                     buffer,

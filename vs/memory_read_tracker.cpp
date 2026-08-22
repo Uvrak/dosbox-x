@@ -15,6 +15,14 @@ namespace
     std::unordered_set<LinearPt>
         readAddresses;
 
+    LinearPt previousInstructionAddress = 0;
+    bool hasPreviousInstruction = false;
+
+    LinearPt transitionTargetAddress = 0xEC2B;
+
+    std::vector<std::pair<LinearPt, LinearPt>>
+        recordedInstructionTransitions;
+
     struct ReadInstructionHash
     {
         size_t operator()(
@@ -41,7 +49,7 @@ namespace
         ReadInstructionHash
     >
         readInstructions;
-
+    
     std::mutex
         readAddressesMutex;
 }
@@ -115,6 +123,11 @@ void MemoryReadTracker::start()
 
         readAddresses.clear();
         readInstructions.clear();
+
+        recordedInstructionTransitions.clear();
+
+        previousInstructionAddress = 0;
+        hasPreviousInstruction = false;
     }
 
     trackingActive = true;
@@ -133,6 +146,11 @@ void MemoryReadTracker::clear()
 
     readAddresses.clear();
     readInstructions.clear();
+
+    recordedInstructionTransitions.clear();
+
+    previousInstructionAddress = 0;
+    hasPreviousInstruction = false;
 }
 
 bool MemoryReadTracker::active()
@@ -173,4 +191,55 @@ MemoryReadTracker::instructions()
         readInstructions.begin(),
         readInstructions.end()
     );
+}
+
+void MemoryReadTracker::recordInstruction(
+    LinearPt instructionAddress
+)
+{
+    if(!trackingActive.load())
+    {
+        return;
+    }
+
+    if(instructionAddress == transitionTargetAddress &&
+        hasPreviousInstruction)
+    {
+        std::lock_guard<std::mutex> lock(
+            readAddressesMutex
+        );
+
+        recordedInstructionTransitions.emplace_back(
+            previousInstructionAddress,
+            instructionAddress
+        );
+    }
+
+    previousInstructionAddress =
+        instructionAddress;
+
+    hasPreviousInstruction = true;
+}
+
+std::vector<std::pair<LinearPt, LinearPt>>
+MemoryReadTracker::instructionTransitions()
+{
+    std::lock_guard<std::mutex> lock(
+        readAddressesMutex
+    );
+
+    return recordedInstructionTransitions;
+}
+
+void MemoryReadTracker::setTransitionTarget(
+    LinearPt address
+)
+{
+    transitionTargetAddress =
+        address;
+}
+
+LinearPt MemoryReadTracker::transitionTarget()
+{
+    return transitionTargetAddress;
 }
