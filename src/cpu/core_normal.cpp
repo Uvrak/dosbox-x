@@ -185,7 +185,11 @@ Bits CPU_Core_Normal_Run(void) {
             core.cseip;
 
         MemoryReadTracker::recordInstruction(
-            core.instruction_start
+            core.instruction_start,
+            SegValue(cs),
+            static_cast<uint16_t>(
+                reg_eip
+                )
         );
 
         last_prefix = MP_NONE;

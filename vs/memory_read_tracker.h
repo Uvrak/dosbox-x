@@ -35,9 +35,14 @@ namespace MemoryReadTracker
         instructions();
 
     void recordInstruction(
-        LinearPt instructionAddress
+        LinearPt instructionAddress,
+        uint16_t cs,
+        uint16_t ip
     );
 
     std::vector<std::pair<LinearPt, LinearPt>>
         instructionTransitions();
+
+    std::vector<std::pair<uint16_t, uint16_t>>
+        instructionTransitionContexts();
 }

@@ -329,6 +329,80 @@ namespace
                             );
                     }
 
+                else if(std::strcmp(
+                    buffer,
+                    "READTRACK:TRANSITIONCONTEXTCOUNT"
+                    ) == 0)
+                    {
+                        const auto contexts =
+                            MemoryReadTracker::
+                            instructionTransitionContexts();
+
+                        response =
+                            std::to_string(
+                                contexts.size()
+                            );
+                    }
+
+                else if(std::strncmp(
+                    buffer,
+                    "READTRACK:TRANSITIONCONTEXTS:",
+                    std::strlen(
+                    "READTRACK:TRANSITIONCONTEXTS:"
+                    )
+                    ) == 0)
+                    {
+                        size_t start = 0;
+                        size_t count = 0;
+
+                        const char* parameters =
+                            buffer +
+                            std::strlen(
+                                "READTRACK:TRANSITIONCONTEXTS:"
+                            );
+
+                        if(std::sscanf(
+                            parameters,
+                            "%zu:%zu",
+                            &start,
+                            &count
+                        ) != 2)
+                        {
+                            response = "ERROR";
+                        }
+                        else
+                        {
+                            const auto contexts =
+                                MemoryReadTracker::
+                                instructionTransitionContexts();
+
+                            std::ostringstream stream;
+
+                            const size_t end =
+                                (std::min)(
+                                    start + count,
+                                    contexts.size()
+                                    );
+
+                            for(size_t index = start;
+                                index < end;
+                                ++index)
+                            {
+                                if(index != start)
+                                {
+                                    stream << ',';
+                                }
+
+                                stream
+                                    << contexts[index].first
+                                    << ':'
+                                    << contexts[index].second;
+                            }
+
+                            response = stream.str();
+                        }
+                }
+
                 else if(std::strncmp(
                     buffer,
                     "READTRACK:TRANSITIONS:",

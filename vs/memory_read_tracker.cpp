@@ -16,11 +16,24 @@ namespace
         readAddresses;
 
     LinearPt previousInstructionAddress = 0;
+
+    uint16_t previousCS = 0;
+    uint16_t previousIP = 0;
+
     bool hasPreviousInstruction = false;
 
     LinearPt transitionTargetAddress = 0xEC2B;
 
-    std::vector<std::pair<LinearPt, LinearPt>>
+    struct InstructionTransition
+    {
+        LinearPt previousAddress = 0;
+        LinearPt currentAddress = 0;
+
+        uint16_t previousCS = 0;
+        uint16_t previousIP = 0;
+    };
+
+    std::vector<InstructionTransition>
         recordedInstructionTransitions;
 
     struct ReadInstructionHash
@@ -194,7 +207,9 @@ MemoryReadTracker::instructions()
 }
 
 void MemoryReadTracker::recordInstruction(
-    LinearPt instructionAddress
+    LinearPt instructionAddress,
+    uint16_t cs,
+    uint16_t ip
 )
 {
     if(!trackingActive.load())
@@ -209,14 +224,21 @@ void MemoryReadTracker::recordInstruction(
             readAddressesMutex
         );
 
-        recordedInstructionTransitions.emplace_back(
-            previousInstructionAddress,
-            instructionAddress
+        recordedInstructionTransitions.push_back(
+            {
+                previousInstructionAddress,
+                instructionAddress,
+                previousCS,
+                previousIP
+            }
         );
     }
 
     previousInstructionAddress =
         instructionAddress;
+
+    previousCS = cs;
+    previousIP = ip;
 
     hasPreviousInstruction = true;
 }
@@ -228,7 +250,49 @@ MemoryReadTracker::instructionTransitions()
         readAddressesMutex
     );
 
-    return recordedInstructionTransitions;
+    std::vector<std::pair<LinearPt, LinearPt>>
+        result;
+
+    result.reserve(
+        recordedInstructionTransitions.size()
+    );
+
+    for(const InstructionTransition& transition :
+        recordedInstructionTransitions)
+    {
+        result.emplace_back(
+            transition.previousAddress,
+            transition.currentAddress
+        );
+    }
+
+    return result;
+}
+
+std::vector<std::pair<uint16_t, uint16_t>>
+MemoryReadTracker::instructionTransitionContexts()
+{
+    std::lock_guard<std::mutex> lock(
+        readAddressesMutex
+    );
+
+    std::vector<std::pair<uint16_t, uint16_t>>
+        result;
+
+    result.reserve(
+        recordedInstructionTransitions.size()
+    );
+
+    for(const InstructionTransition& transition :
+        recordedInstructionTransitions)
+    {
+        result.emplace_back(
+            transition.previousCS,
+            transition.previousIP
+        );
+    }
+
+    return result;
 }
 
 void MemoryReadTracker::setTransitionTarget(
